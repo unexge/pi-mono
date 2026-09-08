@@ -345,6 +345,14 @@ const ANT_LING_RING_THINKING_LEVEL_MAP = {
 } as const;
 
 const BEDROCK_INFERENCE_PROFILE_ONLY_MODEL_IDS = new Set(["anthropic.claude-opus-5"]);
+const BEDROCK_OPENAI_RESPONSES_MODEL_IDS = new Set([
+	"global.openai.gpt-5.6-sol",
+	"global.openai.gpt-5.6-terra",
+	"global.openai.gpt-5.6-luna",
+	"us.openai.gpt-5.6-sol",
+	"us.openai.gpt-5.6-terra",
+	"us.openai.gpt-5.6-luna",
+]);
 const MODELS_DEV_OPENAI_UNSUPPORTED_MODEL_IDS = new Set(["gpt-5.6"]);
 const OPENAI_TOOL_SEARCH_MODEL_IDS = new Set([
 	"gpt-5.4",
@@ -1487,12 +1495,13 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 					continue;
 				}
 
+				const useOpenAIResponses = BEDROCK_OPENAI_RESPONSES_MODEL_IDS.has(id);
 				models.push({
 					id,
 					name: m.name || id,
-					api: "bedrock-converse-stream" as const,
+					api: useOpenAIResponses ? ("openai-responses" as const) : ("bedrock-converse-stream" as const),
 					provider: "amazon-bedrock" as const,
-					baseUrl: getBedrockBaseUrl(id),
+					baseUrl: useOpenAIResponses ? `${getBedrockBaseUrl(id)}/openai/v1` : getBedrockBaseUrl(id),
 					reasoning: m.reasoning === true,
 					input: (m.modalities?.input?.includes("image") ? ["text", "image"] : ["text"]) as ("text" | "image")[],
 					cost: {
@@ -1503,7 +1512,16 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 					},
 					contextWindow: m.limit?.context || 4096,
 					maxTokens: m.limit?.output || 4096,
-					...(m.structured_output === true && { compat: { supportsStrictMode: true } }),
+					...(useOpenAIResponses
+						? {
+								compat: {
+									sessionAffinityFormat: "openai-nosession" as const,
+									supportsExplicitPromptCacheMode: true,
+								},
+							}
+						: m.structured_output === true
+							? { compat: { supportsStrictMode: true } }
+							: {}),
 				});
 				recordModelsDevReasoningOptions("amazon-bedrock" as const, id, m);
 			}

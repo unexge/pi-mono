@@ -17,7 +17,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { complete, getModels } from "../src/compat.ts";
+import { complete, getModel, getModels } from "../src/compat.ts";
 import type { Context } from "../src/types.ts";
 import { hasBedrockCredentials } from "./bedrock-utils.ts";
 
@@ -32,6 +32,31 @@ describe("Amazon Bedrock Models", () => {
 	it("exposes Claude Opus 5 through an inference profile only", () => {
 		expect(models.some((model) => model.id === "global.anthropic.claude-opus-5")).toBe(true);
 		expect(models.some((model) => model.id === "anthropic.claude-opus-5")).toBe(false);
+	});
+
+	it("routes GPT-5.6 cross-region inference profiles through Bedrock Responses", () => {
+		for (const id of [
+			"global.openai.gpt-5.6-sol",
+			"global.openai.gpt-5.6-terra",
+			"global.openai.gpt-5.6-luna",
+		] as const) {
+			expect(getModel("amazon-bedrock", id)).toMatchObject({
+				api: "openai-responses",
+				provider: "amazon-bedrock",
+				baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1",
+				compat: {
+					sessionAffinityFormat: "openai-nosession",
+					supportsExplicitPromptCacheMode: true,
+				},
+			});
+		}
+	});
+
+	it("keeps in-region GPT-5.6 model IDs on Converse", () => {
+		expect(getModel("amazon-bedrock", "openai.gpt-5.6-sol")).toMatchObject({
+			api: "bedrock-converse-stream",
+			provider: "amazon-bedrock",
+		});
 	});
 
 	if (hasBedrockCredentials() && process.env.BEDROCK_EXTENSIVE_MODEL_TEST) {

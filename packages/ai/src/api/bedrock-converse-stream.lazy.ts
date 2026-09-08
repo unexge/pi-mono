@@ -13,6 +13,7 @@ const importNodeOnlyApi = (specifier: string): Promise<unknown> => {
 };
 
 let bedrockModuleOverride: ProviderStreams | undefined;
+let bedrockOpenAIResponsesModuleOverride: ProviderStreams | undefined;
 
 /**
  * Overrides the dynamically imported bedrock implementation. Used by the Bun
@@ -23,8 +24,19 @@ export function setBedrockProviderModule(module: ProviderStreams): void {
 	bedrockModuleOverride = module;
 }
 
+export function setBedrockOpenAIResponsesProviderModule(module: ProviderStreams): void {
+	bedrockOpenAIResponsesModuleOverride = module;
+}
+
 export const bedrockConverseStreamApi = (): ProviderStreams =>
 	lazyApi(
 		async () =>
 			bedrockModuleOverride ?? ((await importNodeOnlyApi("./bedrock-converse-stream.ts")) as ProviderStreams),
+	);
+
+export const bedrockOpenAIResponsesApi = (): ProviderStreams =>
+	lazyApi(
+		async () =>
+			bedrockOpenAIResponsesModuleOverride ??
+			((await importNodeOnlyApi("./bedrock-openai-responses.ts")) as ProviderStreams),
 	);

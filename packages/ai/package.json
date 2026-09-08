@@ -66,6 +66,7 @@
 	"dependencies": {
 		"@anthropic-ai/sdk": "0.123.0",
 		"@aws-sdk/client-bedrock-runtime": "3.1048.0",
+		"@aws/bedrock-token-generator": "1.1.0",
 		"@earendil-works/pi-telemetry": "^0.85.1",
 		"@google/genai": "1.52.0",
 		"@smithy/node-http-handler": "4.7.3",
