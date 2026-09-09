@@ -344,8 +344,10 @@ const ANT_LING_RING_THINKING_LEVEL_MAP = {
 	xhigh: "xhigh",
 } as const;
 
-const BEDROCK_INFERENCE_PROFILE_ONLY_MODEL_IDS = new Set(["anthropic.claude-opus-5"]);
+const BEDROCK_INFERENCE_PROFILE_ONLY_MODEL_IDS = new Set(["anthropic.claude-opus-5", "openai.gpt-6-astra"]);
 const BEDROCK_OPENAI_RESPONSES_MODEL_IDS = new Set([
+	"global.openai.gpt-6-astra",
+	"us.openai.gpt-6-astra",
 	"global.openai.gpt-5.6-sol",
 	"global.openai.gpt-5.6-terra",
 	"global.openai.gpt-5.6-luna",

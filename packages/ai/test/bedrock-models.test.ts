@@ -52,6 +52,40 @@ describe("Amazon Bedrock Models", () => {
 		}
 	});
 
+	it("routes GPT-6 Astra cross-region inference profiles through Bedrock Responses", () => {
+		for (const id of ["global.openai.gpt-6-astra", "us.openai.gpt-6-astra"] as const) {
+			expect(getModel("amazon-bedrock", id)).toMatchObject({
+				api: "openai-responses",
+				provider: "amazon-bedrock",
+				baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1",
+				reasoning: true,
+				input: ["text", "image"],
+				cost: {
+					input: id.startsWith("global.") ? 10 : 11,
+					output: id.startsWith("global.") ? 50 : 55,
+					cacheRead: id.startsWith("global.") ? 1 : 1.1,
+					cacheWrite: id.startsWith("global.") ? 12.5 : 13.75,
+				},
+				contextWindow: 1_050_000,
+				maxTokens: 128_000,
+				compat: {
+					sessionAffinityFormat: "openai-nosession",
+					supportsExplicitPromptCacheMode: true,
+				},
+				thinkingLevelMap: {
+					off: null,
+					minimal: null,
+					low: "low",
+					medium: "medium",
+					high: "high",
+					xhigh: "xhigh",
+					max: "max",
+				},
+			});
+		}
+		expect(models.some((model) => model.id === "openai.gpt-6-astra")).toBe(false);
+	});
+
 	it("keeps in-region GPT-5.6 model IDs on Converse", () => {
 		expect(getModel("amazon-bedrock", "openai.gpt-5.6-sol")).toMatchObject({
 			api: "bedrock-converse-stream",
